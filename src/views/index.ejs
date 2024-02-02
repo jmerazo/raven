@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio de Sesión</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh; /* Cambié 'height' a 'min-height' */
+    }
+
+    .container {
+      background: #fff;
+      max-width: 360px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px 0px #000000;
+      width: 90%; /* Cambié 'max-width' a 'width' para mantenerlo responsive */
+    }
+
+    .form-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px; /* Agregado para separar las etiquetas de los inputs */
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      margin-top: 5px; /* Agregado para separar los inputs */
+      margin-bottom: 5px; /* Agregado para separar los inputs */
+    }
+
+    .form-group button {
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 15px;
+      cursor: pointer;
+      width: 100%; /* Ocupar todo el ancho disponible */
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        width: 95%; /* Aumenté el ancho en pantallas pequeñas */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-header">
+      <h2>Generar guías</h2>
+    </div>
+    <form action="/ruta_para_inicio_sesion" method="post">
+      <!-- Tus campos de formulario existentes -->
+    </form>
+    <div class="form-group">
+      <a type="button" href="#">Registrar</a>
+    </div>
+
+    <!-- Formulario para carga de archivo -->
+    <div class="form-header">
+      <h2>Cargar Archivo</h2>
+    </div>
+    <form id="uploadForm" action="/api/uploadDataGuide" method="post" enctype="multipart/form-data" onsubmit="sendForm(event)">
+      <div class="form-group">
+        <label for="archivo">Selecciona un archivo:</label>
+        <input type="file" id="archivo" name="archivo" required>
+      </div>
+      <div class="form-group">
+        <button type="submit">Cargar Archivo</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    console.log("El script se está cargando");
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('uploadForm');
+        form.addEventListener('submit', sendForm);
+    });
+    
+    function sendForm(event) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      console.log("estoy aqui")
+
+      fetch('/api/uploadDataGuide', {
+          method: 'POST',
+          body: formData
+      }).then(response => response.json())
+        .then(data => {
+            window.open(data.url, '_blank');
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    </script>
+</body>
+</html>

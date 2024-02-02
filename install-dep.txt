@@ -1,0 +1,1 @@
+npm i -S express dotenv body-parser connect-flash cors bcryptjs cookie-parser debug ejs express-flash express-mysql-session express-session helmet jsonwebtoken morgan mysql mysql2 nodemon passport passport-local bwip-js
