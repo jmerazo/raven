@@ -48,6 +48,7 @@ function generarCodigoBarraYPDF(datos, nameFile) {
         doc.moveTo(50, 390).lineTo(550, 390).stroke();
 
         const routeImage = path.join(__dirname, '..', '..', 'resources', 'icon', 'log_raven.png');
+        const routeImageInter = path.join(__dirname, '..', '..', 'resources', 'icon', 'interrapidisimo.png');
 
         // Generar promesas para cada código de barras
         const promesas = datos.map((dato, index) => {
@@ -63,12 +64,14 @@ function generarCodigoBarraYPDF(datos, nameFile) {
                         doc.moveTo(50, 390).lineTo(550, 390).stroke();
                     } 
 
-                    doc.image(routeImage, 50, y + 310, { width: 20, height: 20 });
+                    doc.image(routeImageInter, 50, y, { width: 150, height: 50 });
+
+                    doc.image(routeImage, 50, y + 320, { width: 15, height: 15 });
 
                     doc.fontSize(12)
-                        .text(`Nombre: ${dato.nombre}`, 50, y)
-                        .text(`Dirección: ${dato.direccion}`, 50, y + 20)
-                        .text(`Valor a Cobrar: ${dato.valor}`, 50, y + 40)
+                        .text(`Nombre: ${dato.nombre}`, 50, y + 60)
+                        .text(`Dirección: ${dato.direccion}`, 50, y + 80)
+                        .text(`Valor a Cobrar: ${dato.valor}`, 50, y + 100)
                         .text('Firma del Cliente:', 50, y + 180)
                         .image(png, 450, y, { fit: [100, 100] })
                         .text(dato.guia, 450, y + 80)
