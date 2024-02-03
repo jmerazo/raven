@@ -8,6 +8,7 @@ const XLSX = require('xlsx');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const { format } = require('date-fns');
 
 function verifyDirPDF() {
     // Subir dos niveles en la estructura de directorios si esta función se encuentra en 'proyecto/routes'
@@ -23,8 +24,12 @@ function importarYProcesarExcel(rutaArchivo, res) {
     const workbook = XLSX.readFile(rutaArchivo);
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const datos = XLSX.utils.sheet_to_json(worksheet);
+    // Definir un rango de columnas que deseas mantener (por ejemplo, de la columna A a la C)
+    const rangoColumnas = { s: { c: 0 }, e: { c: 2 } }; 
+    const datos = XLSX.utils.sheet_to_json(worksheet); //{ range: rangoColumnas }
 
+    // Eliminar las 5 primeras filas
+    const datosSinPrimerasFilas = datos.slice(5);
     const nameFile = `Planilla_${Date.now()}.pdf`;
 
     generarCodigoBarraYPDF(datos, nameFile).then(() => {
@@ -53,6 +58,8 @@ function generarCodigoBarraYPDF(datos, nameFile) {
         const date = new Date();
         const year = date.getFullYear();
 
+        const formattedDate = format(date, 'dd-MM-yyyy hh:mm a');
+
         // Generar promesas para cada código de barras
         const promesas = datos.map((dato, index) => {
             return new Promise((resolveBarra, rejectBarra) => {
@@ -72,6 +79,7 @@ function generarCodigoBarraYPDF(datos, nameFile) {
                     doc.image(routeImage, 50, y + 320, { width: 15, height: 15 });
 
                     doc.fontSize(12)
+                        .text(`Fecha de impresión: ${formattedDate}`,  320, y + 320)
                         .font('Helvetica-Bold') // Cambiar a negrita
                         .text('Destinatario:', 50, y + 60)
                         .font('Helvetica') // Restaurar el estilo original                        
