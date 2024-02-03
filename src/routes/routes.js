@@ -25,7 +25,7 @@ function importarYProcesarExcel(rutaArchivo, res) {
     const worksheet = workbook.Sheets[sheetName];
     const datos = XLSX.utils.sheet_to_json(worksheet);
 
-    const nameFile = `guia_${Date.now()}.pdf`;
+    const nameFile = `Planilla_${Date.now()}.pdf`;
 
     generarCodigoBarraYPDF(datos, nameFile).then(() => {
         const routeFile = path.join(__dirname, '..', '..', 'pdfs', nameFile);
@@ -50,6 +50,9 @@ function generarCodigoBarraYPDF(datos, nameFile) {
         const routeImage = path.join(__dirname, '..', '..', 'resources', 'icon', 'log_raven.png');
         const routeImageInter = path.join(__dirname, '..', '..', 'resources', 'icon', 'interrapidisimo.png');
 
+        const date = new Date();
+        const year = date.getFullYear();
+
         // Generar promesas para cada código de barras
         const promesas = datos.map((dato, index) => {
             return new Promise((resolveBarra, rejectBarra) => {
@@ -64,25 +67,41 @@ function generarCodigoBarraYPDF(datos, nameFile) {
                         doc.moveTo(50, 390).lineTo(550, 390).stroke();
                     } 
 
-                    doc.image(routeImageInter, 50, y, { width: 150, height: 50 });
+                    doc.image(routeImageInter, 50, y, { width: 250, height: 53 });
 
                     doc.image(routeImage, 50, y + 320, { width: 15, height: 15 });
 
                     doc.fontSize(12)
-                        .text(`Nombre: ${dato.nombre}`, 50, y + 60)
-                        .text(`Dirección: ${dato.direccion}`, 50, y + 80)
-                        .text(`Valor a Cobrar: ${dato.valor}`, 50, y + 100)
-                        .text('Firma del Cliente:', 50, y + 180)
+                        .font('Helvetica-Bold') // Cambiar a negrita
+                        .text('Destinatario:', 50, y + 60)
+                        .font('Helvetica') // Restaurar el estilo original                        
+                        .text(dato.nombre, 150, y + 60) 
+                        .font('Helvetica-Bold') // Cambiar a negrita                       
+                        .text('Dirección:', 50, y + 80)
+                        .font('Helvetica') // Restaurar el estilo original                        
+                        .text(dato.direccion, 150, y + 80)
+                        .font('Helvetica-Bold') // Cambiar a negrita
+                        .text('Valor a Cobrar: $ ', 50, y + 100)
+                        .font('Helvetica') // Restaurar el estilo original
+                        .text(dato.valor, 150, y + 100)                        
                         .image(png, 450, y, { fit: [100, 100] })
-                        .text(dato.guia, 450, y + 80)
+                        .text(dato.guia, 460, y + 80);
+
+                    // Coloca el cuadro para la firma del cliente
+                    doc.rect(50, y + 190, 500, 70) // x, y, ancho, alto
+                        .stroke();
+
+                    doc.fontSize(12)
+                        .text('Firma del Cliente:', 52, y + 195);
                     
-                    doc.moveTo(50, y + 280) // Comienza en x = 50, y = y + 220
+                    /* doc.moveTo(50, y + 280) // Comienza en x = 50, y = y + 220
                         .lineTo(150, y + 280) // Termina en x = 550, y = y + 220
                         .lineWidth(1) // Ancho de la línea (puedes ajustarlo según lo necesites)
-                        .stroke(); // Dibuja la línea
+                        .stroke(); // Dibuja la línea */
                     
                     doc.fontSize(8)
-                        .text('© Develop for Jeff', 480, y + 320, {  italic: true, bold: true, fontSize: 8 });
+                        .text('SOFTWARE RAVEN', 70, y + 320)
+                        .text(`© Developed by Jeff - ${year}`, 70, y + 330, {  italic: true, bold: true, fontSize: 8 });
 
                     resolveBarra();
                 });
