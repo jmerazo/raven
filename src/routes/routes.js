@@ -24,15 +24,39 @@ function importarYProcesarExcel(rutaArchivo, res) {
     const workbook = XLSX.readFile(rutaArchivo);
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    // Definir un rango de columnas que deseas mantener (por ejemplo, de la columna A a la C)
-    const rangoColumnas = { s: { c: 0 }, e: { c: 2 } }; 
-    const datos = XLSX.utils.sheet_to_json(worksheet); //{ range: rangoColumnas }
+    const datos = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // Obtener los datos como un array de arrays
 
-    // Eliminar las 5 primeras filas
-    const datosSinPrimerasFilas = datos.slice(5);
+    // Saltarse las filas de encabezado si es necesario
+    const datosSinEncabezados = datos.slice(11);
+
+    const datosProcesados = [];
+
+    for (const fila of datosSinEncabezados) {
+        console.log(fila)
+        // Convertir la fila a una cadena y buscar la subcadena 'total de envíos'
+        const filaCompleta = fila.join(' ').toLowerCase();
+        if (filaCompleta.includes('total de envíos')) {
+            break; // Detener el bucle si se encuentra 'Total de envíos'
+        }
+
+        // Asegúrate de que la guía sea una cadena
+        const guiaEnString = fila[0] ? fila[0].toString() : '';
+
+        datosProcesados.push({
+            guia: guiaEnString, // N° Guía (columnas B a D)
+            ciudad_origen: fila[3], // Ciudad Origen (columnas E a J)
+            direccion: fila[10], // Dirección (columnas L a N)
+            forma_pago: fila[15], // Forma de pago (columna R)
+            valor: fila[17], // Valor (columna S)
+            contra_pago: fila[18] // Contra Pago (columna T)
+        });
+    }
+
+    console.log('data: ', datosProcesados)
+
     const nameFile = `Planilla_${Date.now()}.pdf`;
 
-    generarCodigoBarraYPDF(datos, nameFile).then(() => {
+    generarCodigoBarraYPDF(datosProcesados, nameFile).then(() => {
         const routeFile = path.join(__dirname, '..', '..', 'pdfs', nameFile);
         res.sendFile(routeFile);
         /* res.json({ url: `localhost:6633/pdfs/${nameFile}` }); // Envía la URL del archivo PDF generado */
@@ -81,26 +105,36 @@ function generarCodigoBarraYPDF(datos, nameFile) {
                     doc.fontSize(12)
                         .text(`Fecha de impresión: ${formattedDate}`,  320, y + 320)
                         .font('Helvetica-Bold') // Cambiar a negrita
-                        .text('Destinatario:', 50, y + 60)
+                        .text('Ciudad Origen:', 50, y + 80)
                         .font('Helvetica') // Restaurar el estilo original                        
-                        .text(dato.nombre, 150, y + 60) 
+                        .text(dato.ciudad_origen, 150, y + 80) 
                         .font('Helvetica-Bold') // Cambiar a negrita                       
-                        .text('Dirección:', 50, y + 80)
+                        .text('Dirección:', 50, y + 100)
                         .font('Helvetica') // Restaurar el estilo original                        
-                        .text(dato.direccion, 150, y + 80)
+                        .text(dato.direccion, 150, y + 100)
                         .font('Helvetica-Bold') // Cambiar a negrita
-                        .text('Valor a Cobrar: $ ', 50, y + 100)
+                        .text('Forma de pago:', 50, y + 130)
                         .font('Helvetica') // Restaurar el estilo original
-                        .text(dato.valor, 150, y + 100)                        
+                        .text(dato.forma_pago, 150, y + 130)                        
                         .image(png, 450, y, { fit: [100, 100] })
-                        .text(dato.guia, 460, y + 80);
+                        .text(dato.guia, 460, y + 80)
+                        .font('Helvetica-Bold') // Cambiar a negrita
+                        .text('Valor:', 50, y + 150)
+                        .font('Helvetica')// Restaurar el estilo original
+                        .text(`$ ${dato.valor}`, 150, y + 150); 
 
                     // Coloca el cuadro para la firma del cliente
-                    doc.rect(50, y + 190, 500, 70) // x, y, ancho, alto
+                    doc.rect(50, y + 190, 300, 70) // x, y, ancho, alto
                         .stroke();
 
-                    doc.fontSize(12)
+                    doc.fontSize(12)   
                         .text('Firma del Cliente:', 52, y + 195);
+
+                    doc.fontSize(16)
+                        .font('Helvetica-Bold') // Cambiar a negrita
+                        .text('VALOR A COBRAR', 405, y + 195)
+                        .font('Helvetica') // Restaurar el estilo original                        
+                        .text(`$${dato.contra_pago}`, 405, y + 215) 
                     
                     /* doc.moveTo(50, y + 280) // Comienza en x = 50, y = y + 220
                         .lineTo(150, y + 280) // Termina en x = 550, y = y + 220
