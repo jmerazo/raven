@@ -32,7 +32,6 @@ function importarYProcesarExcel(rutaArchivo, res) {
     const datosProcesados = [];
 
     for (const fila of datosSinEncabezados) {
-        console.log(fila)
         // Convertir la fila a una cadena y buscar la subcadena 'total de envíos'
         const filaCompleta = fila.join(' ').toLowerCase();
         if (filaCompleta.includes('total de envíos')) {
@@ -51,8 +50,6 @@ function importarYProcesarExcel(rutaArchivo, res) {
             contra_pago: fila[18] // Contra Pago (columna T)
         });
     }
-
-    console.log('data: ', datosProcesados)
 
     const nameFile = `Planilla_${Date.now()}.pdf`;
 
@@ -100,41 +97,59 @@ function generarCodigoBarraYPDF(datos, nameFile) {
 
                     doc.image(routeImageInter, 50, y, { width: 250, height: 53 });
 
-                    doc.image(routeImage, 50, y + 320, { width: 15, height: 15 });
+                    doc.image(routeImage, 50, y + 310, { width: 15, height: 15 });
+                    const vp = dato.valor.toFixed(0); // Redondear a 0 decimales
+                    const formatter = new Intl.NumberFormat('es-ES'); // Crea un formateador para el estilo de número deseado (por ejemplo, español con comas como separador de miles)
+                    const valorPago = formatter.format(vp); // Formatear el número 
+
+                    doc.fontSize(25)
+                        .font('Helvetica-Bold') // Cambiar a negrita
+                        .text(dato.guia, 50, y + 70)
+                        .font('Helvetica') // Restaurar el estilo original 
 
                     doc.fontSize(12)
-                        .text(`Fecha de impresión: ${formattedDate}`,  320, y + 320)
+                        .text(`Fecha de impresión: ${formattedDate}`,  320, y + 315)
                         .font('Helvetica-Bold') // Cambiar a negrita
-                        .text('Ciudad Origen:', 50, y + 80)
+                        .text('Ciudad Origen:', 50, y + 100)
                         .font('Helvetica') // Restaurar el estilo original                        
-                        .text(dato.ciudad_origen, 150, y + 80) 
+                        .text(dato.ciudad_origen, 150, y + 100) 
                         .font('Helvetica-Bold') // Cambiar a negrita                       
-                        .text('Dirección:', 50, y + 100)
+                        .text('Dirección:', 50, y + 120)
                         .font('Helvetica') // Restaurar el estilo original                        
-                        .text(dato.direccion, 150, y + 100)
+                        .text(dato.direccion, 150, y + 120)
                         .font('Helvetica-Bold') // Cambiar a negrita
-                        .text('Forma de pago:', 50, y + 130)
+                        .text('Forma de pago:', 50, y + 150)
                         .font('Helvetica') // Restaurar el estilo original
-                        .text(dato.forma_pago, 150, y + 130)                        
+                        .text(dato.forma_pago, 150, y + 150)                        
                         .image(png, 450, y, { fit: [100, 100] })
-                        .text(dato.guia, 460, y + 80)
                         .font('Helvetica-Bold') // Cambiar a negrita
-                        .text('Valor:', 50, y + 150)
+                        .text('Valor:', 50, y + 170)
                         .font('Helvetica')// Restaurar el estilo original
-                        .text(`$ ${dato.valor}`, 150, y + 150); 
+                        .text(`$ ${valorPago}`, 150, y + 170); 
 
                     // Coloca el cuadro para la firma del cliente
-                    doc.rect(50, y + 190, 300, 70) // x, y, ancho, alto
+                    doc.rect(50, y + 210, 300, 70) // x, y, ancho, alto
                         .stroke();
 
                     doc.fontSize(12)   
-                        .text('Firma del Cliente:', 52, y + 195);
+                        .text('Firma del Cliente:', 54, y + 215);
 
                     doc.fontSize(16)
                         .font('Helvetica-Bold') // Cambiar a negrita
-                        .text('VALOR A COBRAR', 405, y + 195)
-                        .font('Helvetica') // Restaurar el estilo original                        
-                        .text(`$${dato.contra_pago}`, 405, y + 215) 
+                        .text('VALOR A COBRAR', 405, y + 210)
+                        .font('Helvetica') // Restaurar el estilo original;
+                    
+                    doc.fontSize(20)
+                    if (dato.forma_pago === 'Crédito' || dato.forma_pago === 'Contado') {
+                        // Si la forma de pago es 'Credito', mostrar dato.contra_pago
+                        const contraPagoFormatted = dato.contra_pago.toLocaleString(); // Aplicar formato de miles
+                        doc.text(`$${contraPagoFormatted}`, 405, y + 230);
+                    } else if (dato.forma_pago === 'Al Cobro') {
+                        // Si la forma de pago es 'Al cobro', calcular y mostrar la suma de dato.valor + dato.contra_pago
+                        const valorTotal = dato.valor + dato.contra_pago;
+                        const valorTotalFormatted = valorTotal.toLocaleString(); // Aplicar formato de miles
+                        doc.text(`$${valorTotalFormatted}`, 405, y + 230);
+                    }
                     
                     /* doc.moveTo(50, y + 280) // Comienza en x = 50, y = y + 220
                         .lineTo(150, y + 280) // Termina en x = 550, y = y + 220
@@ -142,8 +157,8 @@ function generarCodigoBarraYPDF(datos, nameFile) {
                         .stroke(); // Dibuja la línea */
                     
                     doc.fontSize(8)
-                        .text('SOFTWARE RAVEN', 70, y + 320)
-                        .text(`© Developed by Jeff - ${year}`, 70, y + 330, {  italic: true, bold: true, fontSize: 8 });
+                        .text('SOFTWARE RAVEN', 70, y + 310)
+                        .text(`© Developed by Jeff - ${year}`, 70, y + 320, {  italic: true, bold: true, fontSize: 8 });
 
                     resolveBarra();
                 });
