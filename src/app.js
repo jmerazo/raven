@@ -38,6 +38,7 @@ app.locals.pluralize = require('pluralize');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use('/pdfs', express.static('pdfs'));
+app.use(express.static('public'));
 
 app.use(flash());
 app.use(bodyParser.json());
